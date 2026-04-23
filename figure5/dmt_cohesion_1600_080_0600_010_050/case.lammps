@@ -1,0 +1,82 @@
+atom_style   sphere
+boundary     p p f
+newton       off
+comm_modify vel yes
+units        si
+
+###############################################
+# Geometry-related parameters
+###############################################
+variable        d1 equal 0.004
+variable        d2 equal ${d1}/7
+variable        r1 equal ${d1}/2
+variable        r2 equal ${d2}/2
+variable        boxx equal ${d1}*16
+variable        boxy equal ${d1}*16
+variable        boxz equal ${d1}*32
+variable        boxz2 equal ${d1}*34
+variable        boxz3 equal ${d1}*32.2
+variable        boxz4 equal ${d1}*32.8
+variable        z2    equal ${d1}*32.7
+variable        reff equal ${r1}*${r2}/(${r1}+${r2})
+
+###############################################
+# Particle-related parameters
+###############################################
+variable        dens1 equal 2500
+#############
+# processors      1 1 1
+region          boxreg block 0 ${boxx} 0 ${boxy} 0 ${boxz}
+region          boxreg2 block 0 ${boxx} 0 ${boxy} 0 ${boxz2}
+region          top block 0 ${boxx} 0 ${boxy} ${boxz3} ${boxz4}
+create_box      2 boxreg2
+change_box      all boundary p p f
+
+read_data      newstart.in add append
+ 
+variable	    YoungsM equal 10000000
+variable        poisson equal 0.17
+variable	    rescoef equal 0.8
+variable	    mu      equal 0.10
+variable	    cohe equal 1/3*${dens1}*9.8*${r2}*${r2}*${r2}/${reff}*16.0
+
+variable        m1 equal 4/3*${dens1}*3.14*${r1}*${r1}*${r1}
+variable        m2 equal 4/3*${dens1}*3.14*${r2}*${r2}*${r2}
+variable        Eeff equal ${YoungsM}/(2*(1-${poisson}*${poisson}))
+variable        meff equal ${m1}*${m2}/(${m1}+${m2})
+variable        mur equal 0.5
+variable        etar equal 0.5
+variable        kn equal 4/3*${Eeff}
+variable        kr equal 2.25*${kn}*${mur}*${mur}*${reff}*${reff}
+variable        Ir equal 1/(1/(7/5*${m1}*${r1}*${r1})+1/(7/5*${m2}*${r2}*${r2}))
+variable        Cr equal 2*sqrt(${kr}*${Ir})
+variable        gammar equal ${etar}*${Cr}/${reff}
+
+pair_style      granular
+pair_coeff      * * dmt ${YoungsM} ${rescoef} ${poisson} ${cohe} tangential mindlin  NULL 0 ${mu} damping coeff_restitution rolling sds ${kr} ${gammar} ${mur} twisting marshall
+
+pair_coeff      2 2 hertz/material 1 1 0.4 tangential mindlin  NULL 1 0 damping viscoelastic
+pair_coeff      1 1 hertz/material 1 1 0.4 tangential mindlin  NULL 1 0 damping viscoelastic
+
+neigh_modify    exclude type 1 1
+neigh_modify    exclude type 2 2
+#fix             zwall all wall/gran hooke  1e7 NULL 50.0 NULL 0.5 0 zplane 0 ${boxz2}
+group           fines type 2
+group           bed type 1
+velocity        bed set  0 0 0
+
+###############################################
+# run the sim
+############################################### 
+thermo_style    custom step atoms ke
+thermo_modify   lost warn
+thermo          10000
+fix             4 bed freeze
+timestep        1e-5
+fix             1 fines nve/sphere
+fix             gg fines gravity 9.8 vector 0 0 -1
+
+dump            out1 all custom 1000000 pour_*.txt id radius type x y z vx vy vz omegax omegay omegaz fx fy fz mass
+dump_modify     out1 format line "%d %f %d %.10f %.10f %.10f %e %e %e %e %e %e %e %e %e %e"
+run             1000000
+

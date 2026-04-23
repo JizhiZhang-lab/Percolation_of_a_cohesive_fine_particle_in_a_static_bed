@@ -1,0 +1,308 @@
+LAMMPS (19 Nov 2024 - Development)
+atom_style   sphere
+boundary     p p f
+newton       off
+comm_modify vel yes
+units        si
+
+###############################################
+# Geometry-related parameters
+###############################################
+variable        d1 equal 0.004
+variable        d2 equal ${d1}/7
+variable        d2 equal 0.004/7
+variable        r1 equal ${d1}/2
+variable        r1 equal 0.004/2
+variable        r2 equal ${d2}/2
+variable        r2 equal 0.000571428571428571/2
+variable        boxx equal ${d1}*16
+variable        boxx equal 0.004*16
+variable        boxy equal ${d1}*16
+variable        boxy equal 0.004*16
+variable        boxz equal ${d1}*32
+variable        boxz equal 0.004*32
+variable        boxz2 equal ${d1}*34
+variable        boxz2 equal 0.004*34
+variable        boxz3 equal ${d1}*32.2
+variable        boxz3 equal 0.004*32.2
+variable        boxz4 equal ${d1}*32.8
+variable        boxz4 equal 0.004*32.8
+variable        z2    equal ${d1}*32.7
+variable        z2    equal 0.004*32.7
+variable        reff equal ${r1}*${r2}/(${r1}+${r2})
+variable        reff equal 0.002*${r2}/(${r1}+${r2})
+variable        reff equal 0.002*0.000285714285714286/(${r1}+${r2})
+variable        reff equal 0.002*0.000285714285714286/(0.002+${r2})
+variable        reff equal 0.002*0.000285714285714286/(0.002+0.000285714285714286)
+
+###############################################
+# Particle-related parameters
+###############################################
+variable        dens1 equal 2500
+#############
+# processors      1 1 1
+region          boxreg block 0 ${boxx} 0 ${boxy} 0 ${boxz}
+region          boxreg block 0 0.064 0 ${boxy} 0 ${boxz}
+region          boxreg block 0 0.064 0 0.064 0 ${boxz}
+region          boxreg block 0 0.064 0 0.064 0 0.128
+region          boxreg2 block 0 ${boxx} 0 ${boxy} 0 ${boxz2}
+region          boxreg2 block 0 0.064 0 ${boxy} 0 ${boxz2}
+region          boxreg2 block 0 0.064 0 0.064 0 ${boxz2}
+region          boxreg2 block 0 0.064 0 0.064 0 0.136
+region          top block 0 ${boxx} 0 ${boxy} ${boxz3} ${boxz4}
+region          top block 0 0.064 0 ${boxy} ${boxz3} ${boxz4}
+region          top block 0 0.064 0 0.064 ${boxz3} ${boxz4}
+region          top block 0 0.064 0 0.064 0.1288 ${boxz4}
+region          top block 0 0.064 0 0.064 0.1288 0.1312
+create_box      2 boxreg2
+Created orthogonal box = (0 0 0) to (0.064 0.064 0.136)
+  1 by 1 by 1 MPI processor grid
+change_box      all boundary p p f
+Changing box ...
+
+read_data      newstart.in add append
+Reading data file ...
+  orthogonal box = (0 0 0) to (0.064 0.064 0.136)
+  1 by 1 by 1 MPI processor grid
+  reading atoms ...
+  19387 atoms
+  reading velocities ...
+  19387 velocities
+  read_data CPU = 0.157 seconds
+
+variable	    YoungsM equal 10000000
+variable        poisson equal 0.17
+variable	    rescoef equal 0.8
+variable	    mu      equal 0.01
+variable	    cohe equal 1/3*${dens1}*9.8*${r2}*${r2}*${r2}/${reff}*24.0
+variable	    cohe equal 1/3*2500*9.8*${r2}*${r2}*${r2}/${reff}*24.0
+variable	    cohe equal 1/3*2500*9.8*0.000285714285714286*${r2}*${r2}/${reff}*24.0
+variable	    cohe equal 1/3*2500*9.8*0.000285714285714286*0.000285714285714286*${r2}/${reff}*24.0
+variable	    cohe equal 1/3*2500*9.8*0.000285714285714286*0.000285714285714286*0.000285714285714286/${reff}*24.0
+variable	    cohe equal 1/3*2500*9.8*0.000285714285714286*0.000285714285714286*0.000285714285714286/0.00025*24.0
+
+variable        m1 equal 4/3*${dens1}*3.14*${r1}*${r1}*${r1}
+variable        m1 equal 4/3*2500*3.14*${r1}*${r1}*${r1}
+variable        m1 equal 4/3*2500*3.14*0.002*${r1}*${r1}
+variable        m1 equal 4/3*2500*3.14*0.002*0.002*${r1}
+variable        m1 equal 4/3*2500*3.14*0.002*0.002*0.002
+variable        m2 equal 4/3*${dens1}*3.14*${r2}*${r2}*${r2}
+variable        m2 equal 4/3*2500*3.14*${r2}*${r2}*${r2}
+variable        m2 equal 4/3*2500*3.14*0.000285714285714286*${r2}*${r2}
+variable        m2 equal 4/3*2500*3.14*0.000285714285714286*0.000285714285714286*${r2}
+variable        m2 equal 4/3*2500*3.14*0.000285714285714286*0.000285714285714286*0.000285714285714286
+variable        Eeff equal ${YoungsM}/(2*(1-${poisson}*${poisson}))
+variable        Eeff equal 10000000/(2*(1-${poisson}*${poisson}))
+variable        Eeff equal 10000000/(2*(1-0.17*${poisson}))
+variable        Eeff equal 10000000/(2*(1-0.17*0.17))
+variable        meff equal ${m1}*${m2}/(${m1}+${m2})
+variable        meff equal 8.37333333333333e-05*${m2}/(${m1}+${m2})
+variable        meff equal 8.37333333333333e-05*2.44120505344996e-07/(${m1}+${m2})
+variable        meff equal 8.37333333333333e-05*2.44120505344996e-07/(8.37333333333333e-05+${m2})
+variable        meff equal 8.37333333333333e-05*2.44120505344996e-07/(8.37333333333333e-05+2.44120505344996e-07)
+variable        mur equal 0.5
+variable        etar equal 0.5
+variable        kn equal 4/3*${Eeff}
+variable        kn equal 4/3*5148800.32952322
+variable        kr equal 2.25*${kn}*${mur}*${mur}*${reff}*${reff}
+variable        kr equal 2.25*6865067.10603096*${mur}*${mur}*${reff}*${reff}
+variable        kr equal 2.25*6865067.10603096*0.5*${mur}*${reff}*${reff}
+variable        kr equal 2.25*6865067.10603096*0.5*0.5*${reff}*${reff}
+variable        kr equal 2.25*6865067.10603096*0.5*0.5*0.00025*${reff}
+variable        kr equal 2.25*6865067.10603096*0.5*0.5*0.00025*0.00025
+variable        Ir equal 1/(1/(7/5*${m1}*${r1}*${r1})+1/(7/5*${m2}*${r2}*${r2}))
+variable        Ir equal 1/(1/(7/5*8.37333333333333e-05*${r1}*${r1})+1/(7/5*${m2}*${r2}*${r2}))
+variable        Ir equal 1/(1/(7/5*8.37333333333333e-05*0.002*${r1})+1/(7/5*${m2}*${r2}*${r2}))
+variable        Ir equal 1/(1/(7/5*8.37333333333333e-05*0.002*0.002)+1/(7/5*${m2}*${r2}*${r2}))
+variable        Ir equal 1/(1/(7/5*8.37333333333333e-05*0.002*0.002)+1/(7/5*2.44120505344996e-07*${r2}*${r2}))
+variable        Ir equal 1/(1/(7/5*8.37333333333333e-05*0.002*0.002)+1/(7/5*2.44120505344996e-07*0.000285714285714286*${r2}))
+variable        Ir equal 1/(1/(7/5*8.37333333333333e-05*0.002*0.002)+1/(7/5*2.44120505344996e-07*0.000285714285714286*0.000285714285714286))
+variable        Cr equal 2*sqrt(${kr}*${Ir})
+variable        Cr equal 2*sqrt(0.241350015446401*${Ir})
+variable        Cr equal 2*sqrt(0.241350015446401*2.7897826431858e-14)
+variable        gammar equal ${etar}*${Cr}/${reff}
+variable        gammar equal 0.5*${Cr}/${reff}
+variable        gammar equal 0.5*1.64111435802018e-07/${reff}
+variable        gammar equal 0.5*1.64111435802018e-07/0.00025
+
+pair_style      granular
+pair_coeff      * * dmt ${YoungsM} ${rescoef} ${poisson} ${cohe} tangential mindlin  NULL 0 ${mu} damping coeff_restitution rolling sds ${kr} ${gammar} ${mur} twisting marshall
+pair_coeff      * * dmt 10000000 ${rescoef} ${poisson} ${cohe} tangential mindlin  NULL 0 ${mu} damping coeff_restitution rolling sds ${kr} ${gammar} ${mur} twisting marshall
+pair_coeff      * * dmt 10000000 0.8 ${poisson} ${cohe} tangential mindlin  NULL 0 ${mu} damping coeff_restitution rolling sds ${kr} ${gammar} ${mur} twisting marshall
+pair_coeff      * * dmt 10000000 0.8 0.17 ${cohe} tangential mindlin  NULL 0 ${mu} damping coeff_restitution rolling sds ${kr} ${gammar} ${mur} twisting marshall
+pair_coeff      * * dmt 10000000 0.8 0.17 0.0182857142857143 tangential mindlin  NULL 0 ${mu} damping coeff_restitution rolling sds ${kr} ${gammar} ${mur} twisting marshall
+pair_coeff      * * dmt 10000000 0.8 0.17 0.0182857142857143 tangential mindlin  NULL 0 0.01 damping coeff_restitution rolling sds ${kr} ${gammar} ${mur} twisting marshall
+pair_coeff      * * dmt 10000000 0.8 0.17 0.0182857142857143 tangential mindlin  NULL 0 0.01 damping coeff_restitution rolling sds 0.241350015446401 ${gammar} ${mur} twisting marshall
+pair_coeff      * * dmt 10000000 0.8 0.17 0.0182857142857143 tangential mindlin  NULL 0 0.01 damping coeff_restitution rolling sds 0.241350015446401 0.000328222871604036 ${mur} twisting marshall
+pair_coeff      * * dmt 10000000 0.8 0.17 0.0182857142857143 tangential mindlin  NULL 0 0.01 damping coeff_restitution rolling sds 0.241350015446401 0.000328222871604036 0.5 twisting marshall
+
+pair_coeff      2 2 hertz/material 1 1 0.4 tangential mindlin  NULL 1 0 damping viscoelastic
+pair_coeff      1 1 hertz/material 1 1 0.4 tangential mindlin  NULL 1 0 damping viscoelastic
+
+neigh_modify    exclude type 1 1
+neigh_modify    exclude type 2 2
+#fix             zwall all wall/gran hooke  1e7 NULL 50.0 NULL 0.5 0 zplane 0 ${boxz2}
+group           fines type 2
+10000 atoms in group fines
+group           bed type 1
+9387 atoms in group bed
+velocity        bed set  0 0 0
+
+###############################################
+# run the sim
+###############################################
+thermo_style    custom step atoms ke
+thermo_modify   lost warn
+thermo          10000
+fix             4 bed freeze
+timestep        1e-5
+fix             1 fines nve/sphere
+fix             gg fines gravity 9.8 vector 0 0 -1
+
+dump            out1 all custom 1000000 pour_*.txt id radius type x y z vx vy vz omegax omegay omegaz fx fy fz mass
+dump_modify     out1 format line "%d %f %d %.10f %.10f %.10f %e %e %e %e %e %e %e %e %e %e"
+run             1000000
+Generated 0 of 1 mixed pair_coeff terms from geometric mixing rule
+Neighbor list info ...
+  update: every = 1 steps, delay = 0 steps, check = yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 0.005
+  ghost atom cutoff = 0.005
+  binsize = 0.0025, bins = 26 26 55
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair granular, perpetual
+      attributes: half, newton off, size, history
+      pair build: half/size/bin/atomonly/newtoff
+      stencil: full/bin/3d
+      bin: standard
+Per MPI rank memory allocation (min/avg/max) = 24.62 | 24.62 | 24.62 Mbytes
+   Step        Atoms        KinEng    
+         0       19387   0            
+     10000       19387   2.897186e-05 
+     20000       19387   2.2951477e-05
+     30000       19387   1.7615724e-05
+     40000       19387   1.4329866e-05
+     50000       19387   1.1034211e-05
+     60000       19387   8.7372821e-06
+     70000       19387   6.5876943e-06
+     80000       19387   5.0546147e-06
+     90000       19387   4.0575278e-06
+    100000       19387   2.9368688e-06
+    110000       19387   2.1686136e-06
+    120000       19387   1.646616e-06 
+    130000       19387   1.2740056e-06
+    140000       19387   1.0125881e-06
+    150000       19387   7.9340062e-07
+    160000       19387   6.7006197e-07
+    170000       19387   5.0887117e-07
+    180000       19387   3.3173346e-07
+    190000       19387   2.8365793e-07
+WARNING: Lost atoms: original 19387 current 19386 (../thermo.cpp:499)
+    200000       19386   2.1859683e-07
+    210000       19384   1.9925654e-07
+    220000       19382   1.225725e-07 
+    230000       19376   8.5174307e-08
+    240000       19373   7.7585724e-08
+    250000       19370   5.0906266e-08
+    260000       19364   1.3508859e-08
+    270000       19360   1.7616031e-09
+    280000       19358   2.3833227e-14
+    290000       19358   2.1519412e-17
+    300000       19358   2.1822942e-17
+    310000       19358   2.1209627e-17
+    320000       19358   1.8197298e-17
+    330000       19358   2.9046846e-17
+    340000       19358   1.5004813e-17
+    350000       19358   2.0108795e-17
+    360000       19358   1.2084185e-17
+    370000       19358   1.827529e-17 
+    380000       19358   1.1311941e-17
+    390000       19358   1.2537612e-17
+    400000       19358   1.5076207e-17
+    410000       19358   1.4439771e-17
+    420000       19358   1.2118967e-17
+    430000       19358   1.7486789e-17
+    440000       19358   1.9099999e-17
+    450000       19358   1.7669427e-17
+    460000       19358   8.6435464e-18
+    470000       19358   1.4223823e-17
+    480000       19358   1.3595823e-17
+    490000       19358   1.2455629e-17
+    500000       19358   1.7251829e-17
+    510000       19358   1.6782919e-17
+    520000       19358   2.4137502e-17
+    530000       19358   1.6014379e-17
+    540000       19358   1.6205437e-17
+    550000       19358   1.1682649e-17
+    560000       19358   1.097702e-17 
+    570000       19358   7.180897e-18 
+    580000       19358   7.6428328e-18
+    590000       19358   1.4968513e-17
+    600000       19358   1.3568363e-17
+    610000       19358   6.7557468e-18
+    620000       19358   7.6870295e-18
+    630000       19358   6.768468e-18 
+    640000       19358   3.7828406e-18
+    650000       19358   8.0352778e-18
+    660000       19358   5.8526268e-18
+    670000       19358   1.5518605e-17
+    680000       19358   1.7896657e-17
+    690000       19358   1.372829e-17 
+    700000       19358   6.6450043e-18
+    710000       19358   1.057496e-17 
+    720000       19358   1.6038859e-17
+    730000       19358   2.4750748e-18
+    740000       19358   2.1894659e-17
+    750000       19358   3.0660593e-17
+    760000       19358   2.6261706e-17
+    770000       19358   6.9960167e-18
+    780000       19358   5.112315e-18 
+    790000       19358   5.3683875e-18
+    800000       19358   6.2100327e-18
+    810000       19358   8.4442177e-18
+    820000       19358   6.2341966e-18
+    830000       19358   6.1119711e-18
+    840000       19358   6.654965e-18 
+    850000       19358   1.1130632e-18
+    860000       19358   8.3443301e-18
+    870000       19358   8.7221786e-18
+    880000       19358   6.007502e-18 
+    890000       19358   3.9361795e-18
+    900000       19358   5.2212369e-18
+    910000       19358   9.7083325e-18
+    920000       19358   1.1330378e-18
+    930000       19358   3.1196334e-18
+    940000       19358   1.0113994e-17
+    950000       19358   7.5357108e-18
+    960000       19358   2.4333237e-18
+    970000       19358   5.7630022e-18
+    980000       19358   7.1158283e-19
+    990000       19358   1.2828539e-18
+   1000000       19358   8.5571787e-19
+Loop time of 6653.26 on 1 procs for 1000000 steps with 19358 atoms
+
+99.4% CPU use with 1 MPI tasks x no OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 5289.4     | 5289.4     | 5289.4     |   0.0 | 79.50
+Neigh   | 76.963     | 76.963     | 76.963     |   0.0 |  1.16
+Comm    | 283.39     | 283.39     | 283.39     |   0.0 |  4.26
+Output  | 0.13757    | 0.13757    | 0.13757    |   0.0 |  0.00
+Modify  | 806.82     | 806.82     | 806.82     |   0.0 | 12.13
+Other   |            | 196.5      |            |       |  2.95
+
+Nlocal:          19358 ave       19358 max       19358 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:           6395 ave        6395 max        6395 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:          33182 ave       33182 max       33182 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 33182
+Ave neighs/atom = 1.7141234
+Neighbor list builds = 1915
+Dangerous builds = 0
+
+Total wall time: 1:50:53
